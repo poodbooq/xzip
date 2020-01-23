@@ -90,30 +90,98 @@ compression method: (2 bytes)
 
 */
 
-// type XZip struct {
-// }
+const (
+	// Local File Headers
+	localFileHeaderSignature = 0x04034b50
 
-// func NewZIP() *XZip {
-// 	return new(XZip)
-// }
+	// Extended Local Headers
+	extLocalFileHeaderSignature = 0x08074b50
 
-// func (z *XZip) AddPath(path string) error {
-// 	return nil
-// }
+	// Central Directory Headers
+	centralFileHeaderSignature = 0x02014b50
 
-// func (z *XZip) AddFile(file *os.File) error {
-// 	return nil
-// }
+	// End Of Central Directory Record Headers
+	endOfCentralDirSignature = 0x06054b50
+)
 
-// func (z *XZip) Flush() error {
-// 	return nil
-// }
+type compression uint8
 
-// func (z *XZip) Close() error {
-// 	return nil
-// }
+const (
+	_ compression = iota
+	noCompression
+	fileIsShrunk
+	factor1
+	factor2
+	factor3
+	factor4
+	imploded
+	tokenizing
+	deflated
+)
 
-// func (z *XZip) Walk() {}
+// ZipStructure ...
+type ZipStructure struct {
+	localFileHeader       []*localFileHeader
+	extendedLocalHeader   []*extendedLocalHeader
+	centralDirectory      []*centralDirectory
+	endOfCentralDirRecord *endOfCentralDirRecord
+}
+
+type localFileHeader struct {
+	signature        uint16
+	version          uint8
+	bitFlag          uint8
+	compression      compression
+	lastModFileTime  uint8
+	lastModFileDate  uint8
+	crc32            uint16
+	compressedSize   uint16
+	uncompressedSize uint16
+	filenameLen      uint8
+	extraFieldLen    uint8
+	filename         []byte
+	extraField       []byte
+	compressedData   []byte
+}
+type extendedLocalHeader struct {
+	signature        uint16
+	crc32            uint16
+	compressedSize   uint16
+	uncompressedSize uint16
+}
+type centralDirectory struct {
+	signature              uint16
+	versionMadeBy          uint8
+	versionNeededToExtract uint8
+	bitFlag                uint8
+	compression            compression
+	lastModFileTime        uint8
+	lastModFileDate        uint8
+	crc32                  uint16
+	compressedSize         uint16
+	uncompressedSize       uint16
+	filenameLen            uint8
+	extraFieldLen          uint8
+	fileCommentLen         uint8
+	diskNumStart           uint8
+	internalFileAttrs      uint8
+	externalFileAttrs      uint16
+	offsetOfLocalHeader    uint16
+	filename               []byte
+	extraField             []byte
+	fileComment            []byte
+}
+type endOfCentralDirRecord struct {
+	signature                           uint16
+	numberOfDisk                        uint8
+	numberOfDiskWithStartOfCentralDir   uint8
+	totalNumOfEntriesInCentralDirOnDisk uint8
+	totalNumOfEntriesInCentralDir       uint8
+	sizeOfCentralDir                    uint16
+	offsetOfStartCentralDir             uint16
+	zipFileCommentLen                   uint8
+	zipFileComment                      []byte
+}
 
 func main() {
 	f, err := os.Create("test333.zip")
